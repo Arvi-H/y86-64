@@ -88,6 +88,6 @@ extern const int RSP;
 /** END Register IDs **/
 
 void applyStageStepMode(int stepMode, char *stageID, int icode, int ifun, int rA, int rB, wordType valC, wordType valP, 
-          wordType valA, wordType valB, wordType valE, bool Cnd, wordType valM);
+                        wordType valA, wordType valB, wordType valE, bool Cnd, wordType valM);
 void applyStepMode(int stepMode);
 #endif

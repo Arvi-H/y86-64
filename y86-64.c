@@ -6,7 +6,66 @@
 const int MAX_MEM_SIZE  = (1 << 13);
 
 void fetchStage(int *icode, int *ifun, int *rA, int *rB, wordType *valC, wordType *valP) {
- 
+    // Get Program Counter // PC
+    wordType PC = getPC();
+
+    // Get icode by extracting the 1st 4 nibbles // icode
+    *icode = (getByteFromMemory(PC) >> 4);
+
+    // Get ifun by extracting the 2nd 4 nibbles using bitwise mask // ifun
+    *ifun = (getByteFromMemory(PC) & 0xf);
+
+    // Refer to comp-table images to understand groupings of common commands
+    if ((*icode == RMMOVQ) || (*icode == MRMOVQ) || (*icode == PUSHQ) || (*icode == POPQ) || 
+        (*icode == OPQ) || (*icode == RRMOVQ) || (*icode == IRMOVQ)) {
+        
+        // Get byte of memory at address PC + 1 // M1[PC + 1]
+        byteType bytePC1 = getByteFromMemory(PC + 1);
+
+        // First nibble of the PC1 byte
+        wordType bytePart1 = bytePC1 >> 4; 
+
+        // Second nibble of the PC1 byte
+        wordType bytePart2 = bytePC1 & 0xf;  
+
+        setRegister(*rA, bytePart1);
+        setRegister(*rB, bytePart2);        
+    }
+
+    // Refer to comp-table images to understand groupings of common commands
+    if ((*icode == RMMOVQ) || (*icode == MRMOVQ) || (*icode == IRMOVQ)) {
+        // Get word from memory at address PC + 2 // M8[PC + 2]
+        wordType wordPC1 = getWordFromMemory(PC + 2);
+
+        // Set valC equal to the above word
+        *valC = wordPC1;
+
+        // Set valP equal to the counter + 10
+        *valP = (PC + 10);
+    }
+
+    // Refer to comp-table images to understand groupings of common commands
+    if ((*icode == PUSHQ) || (*icode == POPQ) || (*icode == OPQ) || (*icode == RRMOVQ)) {
+        // Set valP equal to the counter + 2
+        *valP = (PC + 2);
+    }
+
+    // Refer to comp-table images to understand groupings of common commands
+    if ((*icode == JXX) || (*icode == CALL)) {
+        // Get word from memory at address PC + 1 // M8[PC + 1]
+        wordType wordPC1 = getWordFromMemory(PC + 1);
+
+        // Set valC equal to the above word
+        *valC = wordPC1;
+        
+        // Set valP equal to the counter + 9
+        *valP = (PC + 9);
+    }
+
+    // Refer to comp-table images to understand groupings of common commands
+    if ((*icode == NOP) || (*icode == HALT) || (*icode == RET)) {
+        *valP = (PC + 1);
+    }
 }
 
 void decodeStage(int icode, int rA, int rB, wordType *valA, wordType *valB) {
@@ -26,7 +85,14 @@ void writebackStage(int icode, int rA, int rB, wordType valE, wordType valM) {
 }
 
 void pcUpdateStage(int icode, wordType valC, wordType valP, bool Cnd, wordType valM) {
-  
+    if (icode == NOP) {
+        setPC(valP);
+    }
+
+    if (icode == HALT) {
+        setPC(valP);
+        setStatus(STAT_HLT);
+    }
 }
 
 void stepMachine(int stepMode) {
@@ -72,22 +138,23 @@ void stepMachine(int stepMode) {
  * main
  * */
 int main(int argc, char **argv) {
-  int stepMode = 0;
-  FILE *input = parseCommandLine(argc, argv, &stepMode);
+    int stepMode = 0;
+    FILE *input = parseCommandLine(argc, argv, &stepMode);
 
-  initializeMemory(MAX_MEM_SIZE);
-  initializeRegisters();
-  loadMemory(input);
+    initializeMemory(MAX_MEM_SIZE);
+    initializeRegisters();
+    loadMemory(input);
 
-  applyStepMode(stepMode);
-  while (getStatus() != STAT_HLT) {
-    stepMachine(stepMode);
     applyStepMode(stepMode);
-#ifdef DEBUG
+    while (getStatus() != STAT_HLT) {
+        stepMachine(stepMode);
+        applyStepMode(stepMode);
+    #ifdef DEBUG
+        printMachineState();
+        printf("\n");
+    #endif
+    }
+
     printMachineState();
-    printf("\n");
-#endif
-  }
-  printMachineState();
-  return 0;
+    return 0;
 }
