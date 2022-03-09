@@ -112,7 +112,7 @@ void executeStage(int icode, int ifun, wordType valA, wordType valB, wordType va
     if (icode == OPQ) {
         // Perform Specified Operation
         if (ifun == ADD) { 
-            *valE = valB + valA; 
+            *valE = valB + valA;     
         } else if (ifun == SUB) { 
             valA = -valA;
             *valE = valB + valA; 
@@ -125,10 +125,6 @@ void executeStage(int icode, int ifun, wordType valA, wordType valB, wordType va
         if (*valE = 0) {
             zeroFlag = 1;
         } 
-
-
-
-
     }
 
 
@@ -161,7 +157,20 @@ void memoryStage(int icode, wordType valA, wordType valP, wordType valE, wordTyp
 }
 
 void writebackStage(int icode, int rA, int rB, wordType valE, wordType valM) {
- 
+    // Refer to comp-table images to understand groupings of common commands
+    if ((icode == MRMOVQ) || (icode == POPQ)) {
+        setRegister(rA, valM);
+    }
+
+    // Refer to comp-table images to understand groupings of common commands
+    if ((icode == PUSHQ) || (icode == POPQ) || (icode == CALL) || (icode == RET)) {
+        setRegister(RSP, valE);
+    }
+
+    // Refer to comp-table images to understand groupings of common commands
+    if ((icode == OPQ) || (icode == RRMOVQ) || (icode == IRMOVQ)) {
+        setRegister(rB, valE);
+    }
 }
 
 void pcUpdateStage(int icode, wordType valC, wordType valP, bool Cnd, wordType valM) {
