@@ -91,7 +91,46 @@ void decodeStage(int icode, int rA, int rB, wordType *valA, wordType *valB) {
 }
 
 void executeStage(int icode, int ifun, wordType valA, wordType valB, wordType valC, wordType *valE, bool *Cnd) {
-  
+    int bitsInByte = 8;
+
+    // Refer to comp-table images to understand groupings of common commands
+    if ((icode == RMMOVQ) || (icode == MRMOVQ)) {
+        *valE = (valB + valC);
+    }
+
+    // Refer to comp-table images to understand groupings of common commands
+    if ((icode == PUSHQ) || (icode == CALL)) {
+        *valE = (valB + (-bitsInByte));
+    }
+
+    // Refer to comp-table images to understand groupings of common commands
+    if ((icode == POPQ) || (icode == RET)) {
+        *valE = (valB + bitsInByte);
+    }
+
+    // Refer to comp-table images to understand groupings of common commands
+    if (icode == OPQ) {
+        // Perform Specified Operation
+        if (ifun == ADD) { *valE = valB + valA; } 
+        else if (ifun == SUB) { *valE = valB - valA; } 
+        else if (ifun == AND) { valE = valB & valA; }
+        else if (ifun == XOR) { *valE = valB ^ valA; }
+        
+
+        
+
+
+    }
+
+
+    // Refer to comp-table images to understand groupings of common commands
+    if (icode == RRMOVQ) { *valE = valA; }
+
+    // Refer to comp-table images to understand groupings of common commands
+    if (icode == IRMOVQ) { *valE = valC; }
+
+    // Refer to comp-table images to understand groupings of common commands
+    if (icode == JXX) { *Cnd = Cond(ifun); }
 }
 
 void memoryStage(int icode, wordType valA, wordType valP, wordType valE, wordType *valM) {
