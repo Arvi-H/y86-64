@@ -69,7 +69,25 @@ void fetchStage(int *icode, int *ifun, int *rA, int *rB, wordType *valC, wordTyp
 }
 
 void decodeStage(int icode, int rA, int rB, wordType *valA, wordType *valB) {
- 
+    // Refer to comp-table images to understand groupings of common commands
+    if ((icode == RMMOVQ) || (icode == PUSHQ) || (icode == OPQ) || (icode == RRMOVQ)) {
+        *valA = getRegister(rA);
+    }
+
+    // Refer to comp-table images to understand groupings of common commands
+    if ((icode == RMMOVQ) || (icode == MRMOVQ) || (icode == OPQ)) {
+        *valB = getRegister(rB);
+    }
+
+    // Refer to comp-table images to understand groupings of common commands
+    if ((icode == PUSHQ) || (icode == POPQ) || (icode == CALL) || (icode == RET)) {
+        *valB = getRegister(RSP);
+    }
+
+    // Refer to comp-table images to understand groupings of common commands
+    if ((icode == POPQ) || (icode == RET)) {
+        *valA = getRegister(RSP);
+    }
 }
 
 void executeStage(int icode, int ifun, wordType valA, wordType valB, wordType valC, wordType *valE, bool *Cnd) {
