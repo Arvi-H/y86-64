@@ -174,13 +174,31 @@ void writebackStage(int icode, int rA, int rB, wordType valE, wordType valM) {
 }
 
 void pcUpdateStage(int icode, wordType valC, wordType valP, bool Cnd, wordType valM) {
-    if (icode == NOP) {
+    // Refer to comp-table images to understand groupings of common commands
+    if ((icode == NOP) || (icode == RMMOVQ) || (icode == MRMOVQ) || (icode == PUSHQ) || 
+        (icode == POPQ) || (icode == OPQ) || (icode == RRMOVQ) || (icode == IRMOVQ)) {
         setPC(valP);
     }
 
+    // Refer to comp-table images to understand groupings of common commands
     if (icode == HALT) {
         setPC(valP);
         setStatus(STAT_HLT);
+    }
+
+    // Refer to comp-table images to understand groupings of common commands
+    if (icode == JXX) {
+        setPC(Cnd ? valC : valP); 
+    }
+
+    // Refer to comp-table images to understand groupings of common commands
+    if (icode == CALL) {
+        setPC(valC); 
+    }
+
+    // Refer to comp-table images to understand groupings of common commands
+    if (icode == RET) {
+        setPC(valM); 
     }
 }
 
