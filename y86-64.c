@@ -23,13 +23,13 @@ void fetchStage(int *icode, int *ifun, int *rA, int *rB, wordType *valC, wordTyp
         byteType bytePC1 = getByteFromMemory(PC + 1);
 
         // First nibble of the PC1 byte
-        wordType bytePart1 = bytePC1 >> 4; 
+        wordType bytePart1 = (bytePC1 >> 4) & 0xf; 
 
         // Second nibble of the PC1 byte
         wordType bytePart2 = bytePC1 & 0xf;  
 
-        setRegister(*rA, bytePart1);
-        setRegister(*rB, bytePart2);        
+        *rA = bytePart1;
+        *rB = bytePart2;
     }
 
     // Refer to comp-table images to understand groupings of common commands
@@ -100,7 +100,7 @@ void executeStage(int icode, int ifun, wordType valA, wordType valB, wordType va
 
     // Refer to comp-table images to understand groupings of common commands
     if ((icode == PUSHQ) || (icode == CALL)) {
-        *valE = (valB + (-bitsInByte));
+        *valE = (valB + (-8));
     }
 
     // Refer to comp-table images to understand groupings of common commands
@@ -110,23 +110,26 @@ void executeStage(int icode, int ifun, wordType valA, wordType valB, wordType va
 
     // Refer to comp-table images to understand groupings of common commands
     if (icode == OPQ) {
+        bool of = 0;
+
         // Perform Specified Operation
         if (ifun == ADD) { 
             *valE = valB + valA;     
+
+            of = (((valA < 0) == (valB < 0)) && ((*valE < 0) != (valA < 0)));
         } else if (ifun == SUB) { 
             valA = -valA;
-            *valE = valB + valA; 
+            *valE = valB + valA;
+
+            of = (((valA < 0) == (valB < 0)) && ((*valE < 0) != (valA < 0)));
         } else if (ifun == AND) { 
-            valE = valB & valA; 
+            *valE = valB & valA; 
         } else if (ifun == XOR) { 
             *valE = valB ^ valA; 
         }         
-
-        if (*valE = 0) {
-            zeroFlag = 1;
-        } 
+ 
+        setFlags(*valE < 0, *valE == 0, of);
     }
-
 
     // Refer to comp-table images to understand groupings of common commands
     if (icode == RRMOVQ) { *valE = valA; }
